@@ -183,9 +183,15 @@ function load() {
         if(stageUname) {
             patron = uEditLoadStageUser(stageUname);
         } else {
-            patron = uEditNewPatron();
-            if(cloneUser) 
-                uEditCopyCloneData(patron);
+            if (nec_number) {
+                patron = uEditNewPatronNEC(first_given_name, family_name, nec_number,
+                  dob, address, postcode, phone);
+            }
+            else {
+                patron = uEditNewPatron();
+                if(cloneUser)
+                    uEditCopyCloneData(patron);
+                }
         }
     }
 
@@ -1303,6 +1309,50 @@ function uEditNewPatron() {
     return patron;
 }
 
+/* creates a new patron object with card attached from NEC scan */
+function uEditNewPatronNEC(first_given_name, family_name, nec_number,dob, address, postcode, phone) {
+    patron = new au();
+    patron.isnew(1);
+    patron.id(-1);
+    card = new ac();
+    card.id(uEditCardVirtId--);
+    card.isnew(1);
+    patron.active(1);
+    patron.card(card);
+    patron.cards([card]);
+    patron.net_access_level(orgSettings['ui.patron.default_inet_access_level'] || 1);
+    patron.ident_type(orgSettings['ui.patron.default_ident_type']);
+    patron.stat_cat_entries([]);
+    patron.survey_responses([]);
+    patron.addresses([]);
+    uEditMakeRandomPw(patron);
+    patron.first_given_name(first_given_name);
+    patron.family_name(family_name);
+    card = new fieldmapper.ac();
+    card.id(-1); // virtual ID
+    patron.card().barcode(nec_number);
+    patron.dob(dob);
+    patron.day_phone(phone);
+    patron.evening_phone(phone);
+
+    var mail_addr = new fieldmapper.aua();
+    mail_addr.id(-1); // virtual ID
+    mail_addr.usr(-1);
+    mail_addr.isnew(1);
+    patron.mailing_address(mail_addr);
+    var t = patron.addresses();
+    if (!t) { t = []; }
+    t.push(mail_addr);
+    patron.addresses(t);
+    mail_addr['post_code'](postcode);
+    mail_addr['street1'](address);
+    mail_addr['state']('UK');
+    mail_addr['country']('UK');
+    patron.usrname(nec_number);
+
+    return patron;
+}
+
 function uEditMakeRandomPw(patron) {
     var rand  = Math.random();
     rand = parseInt(rand * 10000) + '';
@@ -1471,6 +1521,18 @@ function uEditFinishSave(newPatron, doClone) {
 
 function uEditRefresh() {
     var usr = cgi.param('usr');
+    var sedar_refresh = cgi.param('sedar_refresh');
+    var nec_number = cgi.param('nec_number');
+    if (sedar_refresh==1)
+    {
+        var myPackageDir = 'open_ils_staff_client'; var IAMXUL = true; var g = {};
+        var loc = xulG.url_prefix( '/xul/rel_2_0_9/server/patron/display.xul' );
+        if (typeof window.xulG == 'object' && typeof window.xulG.set_tab == 'function') {
+            window.xulG.set_tab( loc, {}, { 'barcode' : nec_number } );
+        } else {
+            location.href = loc + '?barcode=' + window.escape(nec_number);
+        }
+    }
     var href = location.href.replace(/\?.*/, '');
     href += ((usr) ? '?usr=' + usr : '');
     location.href = href;
