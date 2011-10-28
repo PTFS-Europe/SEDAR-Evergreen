@@ -438,7 +438,6 @@ var urls = {
     'XUL_PATRON_BILL_DETAILS' : '/xul/server/patron/bill_details.xul',
     'XUL_PATRON_BILL_HISTORY' : '/xul/server/patron/bill_history.xul',
     'XUL_PATRON_BILL_WIZARD' : '/xul/server/patron/bill_wizard.xul',
-    'XUL_PATRON_BILL_ALTERNATE_VIEW' : '/xul/server/patron/bill2.xul',
     'XUL_PATRON_DISPLAY' : '/xul/server/patron/display.xul',
     'XUL_PATRON_HORIZ_DISPLAY' : '/xul/server/patron/display_horiz.xul',
     'XUL_SEDAR_NEC_DATA_UPDATE' : '/xul/server/patron/sedar_nec_data_update.xul',
