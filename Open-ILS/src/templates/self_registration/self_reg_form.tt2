@@ -1,0 +1,281 @@
+<html class="dj_gecko dj_contentbox" xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<link href="http://prd1.sedar.org.uk//opac//skin/default/css/layout.css" rel="stylesheet" type="text/css">
+		<link href="http://prd1.sedar.org.uk//opac//common/css/mediumfont.css" rel="stylesheet" type="text/css">
+		<link href="http://prd1.sedar.org.uk//opac//theme/default/css/colors.css" rel="stylesheet" type="text/css">
+		<link href="http://prd1.sedar.org.uk//opac//theme/reddish/css/colors.css" title="Reddish" rel="alternate stylesheet" type="text/css">
+		<style type="text/css">
+			@import '/js/dojo/dojo/resources/dojo.css';
+			@import '/js/dojo/dijit/themes/tundra/tundra.css';
+			.error_message {
+				font-weight:bold;
+				color:#C00;
+			}
+		</style>
+		<title>Register an account</title>
+		<link href="/favicon.ico" type="image/ico" rel="icon">
+	</head>
+	<body class="tundra">
+		<script src="/js/jquery.js" language="javascript" type="text/javascript"></script>
+		<script type="text/javascript" language="javascript">
+				var date=new Date;
+				var ts=date.getTime();
+			$(document).ready(function() {
+				$('#error_message').hide();
+				$('input[name=loadtime]').val(ts);
+			});
+			function checkForm()
+			{
+				var loadtime=$('input[name=loadtime]').val();
+				var date=new Date;
+				var checkdate=date.getTime();
+				if (checkdate-loadtime<5000)
+				{
+					alert('It appears that this form submission was made by an automated process. If this is not the case, please close this dialogue and submit the form again.');
+					return false;
+				}
+			
+				var valid=1;
+				if ($('#fname').val().length == 0)
+				{
+					$('#fname_label').addClass("error_message");
+					valid=0;
+				}
+				else
+				{
+					$('#fname_label').removeClass("error_message");
+				}
+				if ($('#surname').val().length == 0)
+				{
+					$('#surname_label').addClass("error_message");
+					valid=0;
+				}
+				else
+				{
+					$('#surname_label').removeClass("error_message");
+				}
+				if ($('#dphone').val().length == 0)
+				{
+					$('#dphone_label').addClass("error_message");
+					valid=0;
+				}
+				else
+				{
+					$('#dphone_label').removeClass("error_message");
+				}
+				if ($('#ephone').val().length == 0)
+				{
+					$('#ephone_label').addClass("error_message");
+					valid=0;
+				}
+				else
+				{
+					$('#ephone_label').removeClass("error_message");
+				}
+				if ($('#street1').val().length == 0)
+				{
+					$('#street1_label').addClass("error_message");
+					valid=0;
+				}
+				else
+				{
+					$('#street1_label').removeClass("error_message");
+				}
+				if ($('#city').val().length == 0)
+				{
+					$('#city_label').addClass("error_message");
+					valid=0;
+				}
+				else
+				{
+					$('#city_label').removeClass("error_message");
+				}
+				if ($('#county').val().length == 0)
+				{
+					$('#county_label').addClass("error_message");
+					valid=0;
+				}
+				else
+				{
+					$('#county_label').removeClass("error_message");
+				}
+				if ($('#postcode').val().length == 0)
+				{
+					$('#postcode_label').addClass("error_message");
+					valid=0;
+				}
+				else
+				{
+					$('#postcode_label').removeClass("error_message");
+				}
+				
+				var validemail=verifyEmail();
+				if (validemail==0 || $('#email').val().length == 0)
+				{
+					$('#email_label').addClass("error_message");
+					valid=0;
+				}
+				else
+				{
+					$('#email_label').removeClass("error_message");
+				}
+				
+				if (valid==0)
+				{
+					$('#error_message').show();
+					return false;
+				}
+				
+				if (valid==1)
+				{
+					$('#reg_form').submit();
+				}
+				
+				function verifyEmail()
+				{
+					var emailRegEx = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
+					var email=$('#email').val();
+					if (email.search(emailRegEx) == -1 && email.length>0)
+					{
+						return 0;
+					}
+					else
+					{
+						return 1;
+					}
+				}
+			}
+		</script>
+		<table id="toptable" width="100%" style="border-collapse: collapse; display: table;">
+			<tbody>
+				<tr>
+					<td width="10%"> </td>
+					<td width="80%">
+						<div id="canvas">
+							<div id="canvas_main" class="home_search canvas" style="border-radius: 6px 6px 6px 6px; padding: 6px; margin-top: 65px;">
+								<div style="width: 100%; text-align: center;">
+									<img src="http://prd1.sedar.org.uk//opac//images/main_logo.jpg">
+								</div>
+								<table id="frontsearch_table" width="100%" height="100%" style="margin-top: 10px; border-collapse: collapse;">
+									<form name="reg_form" method="post" action="" id="reg_form">
+									<tbody>
+										<tr class="color_3">
+											<td class="border_5" align="center" style="padding: 6px;" colspan="2">
+												<strong>Register a Library account (Fields marked with * are mandatory)</strong><div id="error_message" class="error_message"><p>Please check the form below for errors and try again.</p></div>
+											</td>
+										</tr>
+										<tr class="rowpad">
+											<td colspan="2">&nbsp;</td>
+										</tr>
+				<tr><td align="center"><table><tr><td>						<tr>
+											<td style="padding:6px;" width="100"><span id="fname_label">First name *</span></td>
+											<td><input type="text" name="fname" size="40" id="fname"></td>
+										</tr>
+										<tr>
+											<td style="padding:6px;">Middle name</td>
+											<td><input type="text" name="mname" size="40" id="mname"></td>
+										</tr>
+										<tr>
+											<td style="padding:6px;"><span id="surname_label">Surname *</span></td>
+											<td><input type="text" name="surname" size="40" id="surname"></td>
+										</tr>
+										<tr>
+											<td style="padding:6px;"><span id="dphone_label">Daytime phone *</span></td>
+											<td><input type="text" name="dphone" size="40" id="dphone"></td>
+										</tr>
+										<tr>
+											<td style="padding:6px;"><span id="ephone_label">Evening phone *</span></td>
+											<td><input type="text" name="ephone" size="40" id="ephone"></td>
+										</tr>
+										<tr>
+											<td style="padding:6px;">Other phone</td>
+											<td><input type="text" name="ophone" size="40" id="ophone"></td>
+										</tr>
+										<tr>
+											<td style="padding:6px;"><span id="email_label">Email *</span></td>
+											<td><input type="text" name="email" size="40" id="email"></td>
+										</tr>
+										<tr>
+											<td style="padding:6px;">Date of Birth *</td>
+											<td>
+												<select name="dob_d" id="dob_d">
+													<script type="text/javascript" language="javascript">
+														var d=1;
+														for (d=1;d<=31;d++)
+														{
+															document.write('<option value="'+d+'">'+d+'</option>');
+														}
+													</script>
+												</select>
+												<select name="dob_m" id="dob_m">
+													<script type="text/javascript" language="javascript">
+														var m=1;
+														for (m=1;m<=12;m++)
+														{
+															document.write('<option value="'+m+'">'+m+'</option>');
+														}
+													</script>
+												</select>
+												<select name="dob_y" id="dob_y">
+													<script type="text/javascript" language="javascript">
+														var currDate=new Date();
+														var year=currDate.getFullYear();
+														var stop=year-100;
+														while (year>stop)
+														{
+															document.write('<option value="'+year+'">'+year+'</option>');
+															year=year-1;
+														}
+													</script>
+												</select>
+											</td>
+										</tr>
+										<tr>
+											<td style="padding:6px;"><span id="street1_label">Address 1 *</span></td>
+											<td><input type="text" name="street1" size="40" id="street1"></td>
+										</tr>
+										<tr>
+											<td style="padding:6px;">Address 2</td>
+											<td><input type="text" name="street2" size="40" id="street2"></td>
+										</tr>
+										<tr>
+											<td style="padding:6px;"><span id="city_label">City *</span></td>
+											<td><input type="text" name="city" size="40" id="city"></td>
+										</tr>
+										<tr>
+											<td style="padding:6px;"><span id="county_label">County *</span></td>
+											<td><input type="text" name="county" size="40" id="county"></td>
+										</tr>
+										<tr>
+											<td style="padding:6px;">Country</td>
+											<td><input type="text" name="country" size="40" id="country"></td>
+										</tr>
+										<tr>
+											<td style="padding:6px;"><span id="postcode_label">Postcode *</span></td>
+											<td><input type="text" name="postcode" size="40" id="postcode"></td>
+										</tr>
+										<tr class="rowpad">
+											<td colspan="2">&nbsp;</td>
+										</tr>
+										<tr>
+											<td align="center" style="padding: 6px;" colspan="2">
+												<input type="hidden" name="mode" value="create">
+												<input type="hidden" name="loadtime" value="">
+												<input type="hidden" name="barcode" value="[% barcode %]">
+												<input type="hidden" name="library" value="xxx"><!-- specify org_unit ID for default joining branch -->
+												<input type="submit" value="Create account" onclick="checkForm();return false;">
+											</td>
+										</tr>
+										</td></tr></table></td></tr>
+									</tbody>
+									</form>
+								</table>
+							</div>
+						</div>
+					</td>
+					<td width="10%"> </td>
+				</tr>
+			</tbody>
+		</table>
+	</body>
+</html>
