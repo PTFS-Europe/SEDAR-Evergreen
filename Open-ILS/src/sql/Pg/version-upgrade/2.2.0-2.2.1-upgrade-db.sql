@@ -8,6 +8,7 @@ INSERT INTO config.upgrade_log (version, applied_to) VALUES ('2.2.1', :eg_versio
 -- check whether patch can be applied
 SELECT evergreen.upgrade_deps_block_check('0722', :eg_version);
 
+ALTER TABLE acq.purchase_order DROP CONSTRAINT IF EXISTS valid_po_state;
 ALTER TABLE acq.purchase_order ADD CONSTRAINT valid_po_state 
     CHECK (state IN ('new','pending','on-order','received','cancelled'));
 
