@@ -618,7 +618,7 @@ function _rdetailDraw(r) {
 	// grab added content 
 
     // Proxied through Evergreen AddedContent module
-	acCollectData(cleanISBN(record.isbn()), rdetailhandleAC);
+//	acCollectData(cleanISBN(record.isbn()), rdetailhandleAC);
 
     var currentISBN = cleanISBN(record.isbn());
 
