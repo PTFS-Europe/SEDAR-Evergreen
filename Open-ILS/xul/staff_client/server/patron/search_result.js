@@ -189,7 +189,7 @@ patron.search_result.prototype = {
         var search_hash = {};
         obj.search_term_count = 0;
         var inactive = false;
-        var search_depth = 0;
+        var search_depth = 1;
         for (var i in query) {
             switch( i ) {
                 case 'card':
