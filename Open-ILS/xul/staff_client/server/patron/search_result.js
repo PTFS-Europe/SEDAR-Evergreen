@@ -228,7 +228,7 @@ patron.search_result.prototype = {
                 break;
 
                 case 'search_depth':
-                    search_depth = 1;
+                    search_depth = function(a){return a;}(query[i]);
                 break;
             }
         }
