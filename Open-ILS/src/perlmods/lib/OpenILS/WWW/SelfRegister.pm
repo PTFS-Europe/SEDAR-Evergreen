@@ -150,7 +150,7 @@ sub create_borrower {
     $bor->cards(     [$card] );
     $bor->isnew(1);
     $bor->ident_type(3);
-    $bor->profile(xx);    # Set to id of entry in permission.grp_tree
+    $bor->profile(1);    # Set to id of entry in permission.grp_tree
     $bor->expire_date( get_expiry() );
     my $age = get_age( $dob_d, $dob_m, $cgi->param('dob_y') );
 
