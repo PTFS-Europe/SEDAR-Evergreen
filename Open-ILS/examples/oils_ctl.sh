@@ -8,6 +8,7 @@ OPT_Z3950_CONFIG="SYSCONFDIR/oils_z3950.xml"
 OPT_YAZ_CONFIG="SYSCONFDIR/oils_yaz.xml"
 Z3950_LOG="LOCALSTATEDIR/log/oils_z3950.log"
 SIP_DIR="/opt/SIPServer";
+OPT_SIP_PORT=""
 
 # ---------------------------------------------------------------------------
 # Make sure we're running as the correct user
