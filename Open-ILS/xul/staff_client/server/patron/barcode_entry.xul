@@ -132,13 +132,13 @@
                                 case 'found':
                                     clear_nec_scan();
                                     sound.good();
-                                    spawn(robj.barcode);
+                                    spawn(robj.id, robj.barcode);
                                     break;
                                 case 'found_old_card':
                                     clear_nec_scan();
                                     alert('Expired card\n\nNew NEC card number: '+robj.barcode);
                                     sound.good();
-                                    spawn(robj.barcode);
+                                    spawn(robj.id, robj.barcode);
                                     break;
                                 case 'not_found_add':
                                     clear_nec_scan();
