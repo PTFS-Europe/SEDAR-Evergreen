@@ -1,7 +1,7 @@
 #!/bin/bash
 
 OPT_ACTION=""
-OPT_SIP_CONFIG="SYSCONFDIR/oils_sip.xml"
+OPT_SIP_CONFIG=""
 OPT_PID_DIR="LOCALSTATEDIR/run"
 OPT_SIP_ERR_LOG="/dev/null";
 OPT_Z3950_CONFIG="SYSCONFDIR/oils_z3950.xml"
@@ -42,6 +42,7 @@ while getopts "a:d:s:l:" flag; do
 		"s")		OPT_SIP_CONFIG="$OPTARG";;
 		"d")		OPT_PID_DIR="$OPTARG";;
 		"l")		OPT_SIP_ERR_LOG="$OPTARG";;
+        "p")        OPT_SIP_PORT="$OPTARG";;
 		"z")		OPT_Z3950_CONFIG="$OPTARG";;
 		"y")		OPT_YAZ_CONFIG="$OPTARG";;
 		"h"|*)	usage;;
@@ -52,7 +53,7 @@ done
 [ -z "$OPT_PID_DIR" ] && OPT_PID_DIR=/tmp;
 [ -z "$OPT_ACTION" ] && usage;
 
-PID_SIP="$OPT_PID_DIR/oils_sip.pid";
+PID_SIP="$OPT_PID_DIR/oils_sip_$OPT_SIP_PORT.pid";
 PID_Z3950="$OPT_PID_DIR/oils_z3950.pid";
 
 # ---------------------------------------------------------------------------
