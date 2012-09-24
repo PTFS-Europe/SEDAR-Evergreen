@@ -36,13 +36,13 @@ function usage {
 # ---------------------------------------------------------------------------
 # Load the command line options and set the global vars
 # ---------------------------------------------------------------------------
-while getopts "a:d:s:l:" flag; do
+while getopts "a:d:s:l:p:" flag; do
 	case $flag in	
 		"a")		OPT_ACTION="$OPTARG";;
 		"s")		OPT_SIP_CONFIG="$OPTARG";;
 		"d")		OPT_PID_DIR="$OPTARG";;
 		"l")		OPT_SIP_ERR_LOG="$OPTARG";;
-        "p")        OPT_SIP_PORT="$OPTARG";;
+		"p")		OPT_SIP_PORT="$OPTARG";;
 		"z")		OPT_Z3950_CONFIG="$OPTARG";;
 		"y")		OPT_YAZ_CONFIG="$OPTARG";;
 		"h"|*)	usage;;
