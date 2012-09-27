@@ -399,3 +399,4 @@ patron.search_form.prototype = {
 }
 
 dump('exiting patron/search_form.js\n');
+

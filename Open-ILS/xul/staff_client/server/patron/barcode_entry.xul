@@ -42,22 +42,21 @@
 
                 JSAN.use('OpenILS.data'); g.data = new OpenILS.data(); g.data.init({'via':'stash'});
 
-                /*var tb = document.getElementById('barcode_tb');
-                tb.addEventListener(
-                    'keypress',
-                    function(ev) {
-                        if (ev.keyCode == 13 || ev.keyCode == 77) {
-                            setTimeout(
-                                function() {
-                                    submit();
-                                }, 0
-                            );
-                        }
-                    },
-                    false
-                );
-                tb.focus();
-*/
+//                var tb = document.getElementById('barcode_tb');
+//                tb.addEventListener(
+//                    'keypress',
+//                    function(ev) {
+//                        if (ev.keyCode == 13 || ev.keyCode == 77) {
+//                            setTimeout(
+//                                function() {
+//                                    submit();
+//                                }, 0
+//                            );
+//                        }
+//                    },
+//                    false
+//                );
+//                tb.focus();
 
                 var nec = document.getElementById('barcode_nec');
                 nec.focus();
@@ -100,7 +99,7 @@
             nec = document.getElementById('barcode_nec');
             var cardstring = nec.value;
             if (cardstring.length==0) {return false;}
-            if (cardstring.length==14) {submit();}
+            if (cardstring.length<=14) {submit();nec.select();nec.focus();return false;}
             try {
                 JSAN.use('util.sound'); var sound = new util.sound();
 
@@ -114,8 +113,8 @@
                         nec.disabled = false; nec.select(); nec.focus(); ;
                         var robj = req.getResultObject();
                         if (typeof robj.ilsevent != 'undefined') {
-                            sound.bad();
-                            alert('error: undefined');
+                            //sound.bad();
+                            //alert('error: undefined');
                             clear_nec_scan();
                             return;
                             }
@@ -189,7 +188,7 @@
 
                 JSAN.use('util.network'); var net = new util.network();
 
-                tb.disabled = true;
+                //tb.disabled = true;
                 document.getElementById('progress').setAttribute('hidden','false');
                 // Auto-complete the barcode, users only. Handily, looks up all we need to know in the process.
                 var barcode_object = xulG.get_barcode(window, 'actor', barcode);
@@ -274,8 +273,11 @@
                 var horizontal_interface = String( g.data.hash.aous['ui.circ.patron_summary.horizontal'] ) == 'true';
                 var loc = xulG.url_prefix( horizontal_interface ? urls.XUL_PATRON_DISPLAY : urls.XUL_PATRON_DISPLAY );
                 if (typeof window.xulG == 'object' && typeof window.xulG.set_tab == 'function') {
-                    window.xulG.set_tab( loc, {}, {"doit":1, "query":js2JSON({"family_name": search_hash.family_name.value, "first_given_name": search_hash.first_given_name.value, "dob": search_hash.dob.value, "inactive": "true", "search_depth": "0"})} );
-                } else {
+                /* Search by name and DOB */
+                    /*window.xulG.set_tab( loc, {}, {"doit":1, "query":js2JSON({"family_name": search_hash.family_name.value, "first_given_name": search_hash.first_given_name.value, "dob": search_hash.dob.value, "inactive": "true", "search_depth": "0"})} );*/
+                    /* Search by name only */
+                    window.xulG.set_tab( loc, {}, {"doit":1, "query":js2JSON({"family_name": search_hash.family_name.value, "first_given_name": search_hash.first_given_name.value, "inactive": "true", "search_depth": "0"})} );
+		} else { 
                     location.href = loc + '?family_name=dickie';
                 }
             } catch(E) {
