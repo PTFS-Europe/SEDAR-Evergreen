@@ -297,3 +297,4 @@ patron.search_result.prototype = {
 }
 
 dump('exiting patron/search_result.js\n');
+
