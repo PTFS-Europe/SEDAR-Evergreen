@@ -2944,7 +2944,7 @@ sub sedar_nec_card_check {
         my $borsearch={
             first_given_name => {value=>$borrower->{first_given_name},group=>0},
             family_name      => {value=>$borrower->{family_name},group=>0},
-            dob              => {value=>$borrower->{dob},group=>0}
+            #dob              => {value=>$borrower->{dob},group=>0}
         };
         return $borsearch;
     }
