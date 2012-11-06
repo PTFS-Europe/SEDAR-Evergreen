@@ -84,6 +84,37 @@
 				<td nowrap='nowrap' class='rdetail_desc'>&rdetail.detailMain.abstract;</td>	
 				<td class='rdetail_item' id='rdetail_abstract'> </td>
 			</tr>
+            <tr>
+                <td nowrap='nowrap' class='rdetail_desc'>Series Title</td>
+                <td class='rdetail_item' type='opac/slot-data' query='datafield[tag="490"]'></td>
+            </tr>
+
+            <tr>
+               <td nowrap='nowrap' class='rdetail_desc'>General Note</td>
+               <td class='rdetail_item' type='opac/slot-data' query='datafield[tag="500"]'>
+            </td>
+            </tr>
+
+            <tr>
+                <td nowrap='nowrap' class='rdetail_desc'>Contents Note</td>
+                <td class='rdetail_item' type='opac/slot-data' query='datafield[tag="505"]'></td>
+            </tr>
+
+            <tr>
+                <td nowrap='nowrap' class='rdetail_desc'>Performer Note</td>
+                <td class='rdetail_item' type='opac/slot-data' query='datafield[tag="511"]'></td>
+            </tr>
+
+            <tr>
+                <td nowrap='nowrap' class='rdetail_desc'>Audience Note</td>
+                <td class='rdetail_item' type='opac/slot-data' query='datafield[tag="521"]'></td>
+            </tr>
+
+            <tr>
+                <td nowrap='nowrap' class='rdetail_desc'>Added Author</td>
+                <td class='rdetail_item' type='opac/slot-data' query='datafield[tag="700"] subfield[code=a]'>
+            </td>
+            </tr>
 
             <!-- *** Example of how to use the openils.BibTemplate infrastructure to augment the stock
                  *** summary screen with complex information, such as new search links on subjects. -->
