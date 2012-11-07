@@ -1,0 +1,25 @@
+<div id='copyright_block'>
+		<div id='footer_links'>
+				<span class='footer_link'>
+					<a class='classic_link'
+						href='/opac/<!--#echo var="locale"-->/extras/slimpac/start.html'>&opac.basic;</a>
+				</span> 
+				<span> | </span>
+				<span class='footer_link'>
+					<a target='_blank' class='classic_link'
+						href='&footer.help.url;'>&footer.help;</a>
+				</span>
+				<span> | </span>
+				<span class='footer_link'>
+					<a target='_blank' class='classic_link'
+						href='http://www.eastdunbarton.gov.uk/content/education_and_learning/libraries_and_archives/access__outreach_library_serv/downloadable_audio_books.aspx'>Audio Books</a>
+				</span>
+		</div>
+<div><b>Lists of new CDs and DVDs - to find these, please enter New DVDs or New CDs as a subject search, or click the following links:-</b></div>
+<div><a href='http://prd1.sedar.org.uk/opac/en-GB/skin/eastdunbarton/xml/rresult.xml?rt=subject&amp;tp=subject&amp;t=New%20DVDs&amp;ft=&amp;l=1&amp;d=0&amp;f='>New DVDs</a></div>
+<div><a href='http://prd1.sedar.org.uk/opac/en-GB/skin/eastdunbarton/xml/rresult.xml?rt=subject&amp;tp=subject&amp;t=New%20CDs&amp;ft=&amp;l=1&amp;d=0&amp;f='>New CDs</a></div>
+<div>To make sure you are always searching the whole of our library service, go to your user preferences after logging in and make sure that your default search location is East Dunbartonshire and your search range is Local Library System.</div>
+        <div id='footer_logo'>&footer.logo;
+            <a href='http://open-ils.org'><img style='border:none; width: 94px; height: 16px;' src='../../../../images/eg_tiny_logo.jpg'/></a>
+        </div>
+</div>
