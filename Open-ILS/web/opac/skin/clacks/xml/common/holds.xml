@@ -83,14 +83,14 @@
 					<td class='holds_cell hide_me' id='holds_is_issuance'><b>&common.hold.issuance;</b></td>
 				</tr>
 
-				<tr>
+				<tr class='hide_me'>
 					<td class='holds_cell'>&opac.holds.contactPhone;:</td>
 					<td class='holds_cell'>
 						<input id='holds_phone' size='13' maxlength='12'/>
 						<span style='margin-left: 4px; font-size: 7pt;'>&common.phone.format;</span>
 					</td>
 				</tr>
-				<tr>
+				<tr class='hide_me'>
 					<td class='holds_cell'>&common.phone.enable;</td>
 					<td class='holds_cell'>
 						<input type='checkbox' id='holds_enable_phone'  checked='checked'
@@ -241,6 +241,8 @@
 
 	<span class='hide_me' id='hold_dup_exists_override'>&common.hold.exists.override;</span>
 	<span class='hide_me' id='hold_checked_out_override'>&common.hold.checked_out.override;</span>
+	<span class='hide_me' id='hold_age_protected_override'>&common.hold.age_protect.override;</span>
+	<span class='hide_me' id='hold_place_unfillable_override'>&common.hold.place_unfillable.override;</span>
 
 	<span id='hold_failed_patron_barred' class='hide_me'>&common.hold.barred;</span>
 
