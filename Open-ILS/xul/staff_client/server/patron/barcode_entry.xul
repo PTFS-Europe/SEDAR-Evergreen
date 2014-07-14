@@ -42,23 +42,31 @@
 
                 JSAN.use('OpenILS.data'); g.data = new OpenILS.data(); g.data.init({'via':'stash'});
 
-                var tb = document.getElementById('barcode_tb');
-                window.barcode_entry_event_listeners = new EventListenerList();
-                window.barcode_entry_event_listeners.add(tb, 
-                    'keypress',
-                    function(ev) {
-                        if (ev.keyCode == 13 || ev.keyCode == 77) {
-                            setTimeout(
-                                function() {
-                                    submit();
-                                }, 0
-                            );
-                        }
-                    },
-                    false
-                );
-                tb.focus();
-    
+//                var tb = document.getElementById('barcode_tb');
+//                window.barcode_entry_event_listeners = new EventListenerList();
+//                window.barcode_entry_event_listeners.add(tb,
+//                    'keypress',
+//                    function(ev) {
+//                        if (ev.keyCode == 13 || ev.keyCode == 77) {
+//                            setTimeout(
+//                                function() {
+//                                    submit();
+//                                }, 0
+//                            );
+//                        }
+//                    },
+//                    false
+//                );
+//                tb.focus();
+
+                var nec = document.getElementById('barcode_nec');
+                nec.focus();
+                nec.onkeyup = function() {
+                    if (document.getElementById('barcode_nec').length!=0) {
+                        nec_scan_listener(function(){submit_sedar_nec();},1000);
+                    }
+                }
+
                 if (typeof window.xulG == 'object' && typeof window.xulG.set_tab_name == 'function') {
                     if (xul_param('perm_editor')) {
                         try { window.xulG.set_tab_name($("patronStrings").getString('staff.patron.barcode_entry.user_permission_editor')); } catch(E) { alert(E); }
@@ -79,6 +87,96 @@
             }
         }
 
+        var nec_scan_listener = function(){
+            var timer = 0;
+            return function(callback, ms){
+                clearTimeout (timer);
+                timer = setTimeout(callback, ms);
+            }
+        }();
+
+        function submit_sedar_nec() {
+            var nec;
+            nec = document.getElementById('barcode_nec');
+            var cardstring = nec.value;
+            if (cardstring.length==0) {return false;}
+            if (cardstring.length<=14) {submit();nec.select();nec.focus();return false;}
+            try {
+                JSAN.use('util.sound'); var sound = new util.sound();
+
+                JSAN.use('util.network'); var net = new util.network();
+                nec.disabled=true;
+                document.getElementById('progress').setAttribute('hidden','false');
+
+                net.simple_request('FM_CHECK_SEDAR_NEC_CARD',[ ses(), cardstring ],
+                    function(req) {
+                        document.getElementById('progress').setAttribute('hidden','true');
+                        nec.disabled = false; nec.select(); nec.focus(); ;
+                        var robj = req.getResultObject();
+                        if (typeof robj.ilsevent != 'undefined') {
+                            //sound.bad();
+                            //alert('error: undefined');
+                            clear_nec_scan();
+                            return;
+                            }
+                            else
+                            {
+                            switch((robj.sedar_card_flag)) {
+                            case 'found_detail_change':
+                                    clear_nec_scan();
+                                    sound.good();
+                                    nec_data_update(robj.userid,robj.borrower.first_given_name,robj.borrower.family_name,robj.borrower.nec_number,robj.borrower.dob,
+                                     robj.borrower.address,robj.borrower.postcode,robj.borrower.phone,robj.db_borrower.first_given_name,robj.db_borrower.family_name,
+                                     robj.db_borrower.dob,robj.db_borrower.address,robj.db_borrower.postcode,robj.db_borrower.phone,robj.db_fleshed,robj.upd_addr);
+                                    break;
+                                case 'found':
+                                    clear_nec_scan();
+                                    sound.good();
+                                    spawn(robj.id, robj.barcode);
+                                    break;
+                                case 'found_old_card':
+                                    clear_nec_scan();
+                                    alert('Expired card\n\nNew NEC card number: '+robj.barcode);
+                                    sound.good();
+                                    spawn(robj.id, robj.barcode);
+                                    break;
+                                case 'not_found_add':
+                                    clear_nec_scan();
+                                    sound.good();
+                                    nec_new_patron(robj.borrower.first_given_name,robj.borrower.family_name,robj.borrower.nec_number,robj.borrower.dob,robj.borrower.address,
+                                    robj.borrower.postcode,robj.borrower.phone);
+                                    break;
+                                case 'not_found_matches':
+                                    clear_nec_scan();
+                                    alert('Patron not found - searching for matches...\n\nNEC card number: '+robj.nec_number);
+                                    sound.good();
+                                    nec_match_search(robj.search_hash);
+                                    break;
+                                case "badscan":
+                                    sound.bad();
+                                    add_msg($("patronStrings").('Invalid patron NEC scan'));
+                                    clear_nec_scan;
+                                    return;
+                                default:
+                                    add_msg($("patronStrings").getFormattedString('staff.patron.barcode_entry.barcode_retrieval_problem', [barcode, js2JSON(robj)]));
+                                    clear_nec_scan();
+                            }
+                        }
+                    }
+                );
+
+        } catch(E) {
+                nec.select(); nec.focus();
+                g.error.standard_unexpected_error_alert('barcode_entry.xul',E);
+            }
+        }
+
+        function clear_nec_scan() {
+            var nec = document.getElementById('barcode_nec');
+            nec.value='';
+        }
+
+
         function my_cleanup() {
             try {
                 window.barcode_entry_event_listeners.removeAll();
@@ -93,7 +191,7 @@
             var tb;
             try {
                 JSAN.use('util.sound'); var sound = new util.sound();
-                tb = document.getElementById('barcode_tb');
+                tb = document.getElementById('barcode_nec');
                 var barcode = tb.value;
 
                 barcode = String( barcode ).replace( /\s+/g, '' );
@@ -102,7 +200,7 @@
 
                 JSAN.use('util.network'); var net = new util.network();
 
-                tb.disabled = true;
+		//tb.disabled = true;
                 document.getElementById('progress').setAttribute('hidden','false');
                 // Auto-complete the barcode, users only. Handily, looks up all we need to know in the process.
                 var barcode_object = xulG.get_barcode(window, 'actor', barcode);
@@ -181,6 +279,108 @@
             if (xul_param('perm_editor')) { spawn_perm_editor(id); } else { spawn_checkout(barcode); }
         }
 
+        function nec_match_search(search_hash) {
+            try {
+
+                var horizontal_interface = String( g.data.hash.aous['ui.circ.patron_summary.horizontal'] ) == 'true';
+                var loc = xulG.url_prefix( horizontal_interface ? urls.XUL_PATRON_DISPLAY : urls.XUL_PATRON_DISPLAY );
+                if (typeof window.xulG == 'object' && typeof window.xulG.set_tab == 'function') {
+                /* Search by name and DOB */
+                    /*window.xulG.set_tab( loc, {}, {"doit":1, "query":js2JSON({"family_name": search_hash.family_name.value, "first_given_name": search_hash.first_given_name.value, "dob": search_hash.dob.value, "inactive": "true", "search_depth": "0"})} );*/
+                    /* Search by name only */
+                    window.xulG.set_tab( loc, {}, {"doit":1, "query":js2JSON({"family_name": search_hash.family_name.value, "first_given_name": search_hash.first_given_name.value, "inactive": "true", "search_depth": "0"})} );
+		} else {
+                    location.href = loc + '?family_name=dickie';
+                }
+            } catch(E) {
+                g.error.standard_unexpected_error_alert($("patronStrings").getString('staff.patron.barcode_entry.patron_display_error'),E);
+            }
+
+        }
+
+        function nec_data_update(id,first_given_name,family_name,nec_number,dob,address,postcode,phone,db_first_given_name,db_family_name,
+                                    db_dob,db_address,db_postcode,db_phone,db_fleshed,upd_addr) {
+        try {
+
+                var horizontal_interface = String( g.data.hash.aous['ui.circ.patron_summary.horizontal'] ) == 'true';
+                var loc = xulG.url_prefix( horizontal_interface ? urls.XUL_SEDAR_NEC_DATA_UPDATE : urls.XUL_SEDAR_NEC_DATA_UPDATE );
+                if (typeof window.xulG == 'object' && typeof window.xulG.set_tab == 'function') {
+                    window.xulG.set_tab( loc, {}, {"id":id,"first_given_name":first_given_name,"family_name":family_name,
+                     "nec_number":nec_number,"dob":dob,"address":address,"postcode":postcode,"phone":phone,
+                     "db_first_given_name":db_first_given_name,"db_family_name":db_family_name,"db_id":id,
+                     "db_nec_number":nec_number,"db_dob":db_dob,"db_address":db_address,"db_postcode":db_postcode,"db_phone":db_phone,"db_fleshed":db_fleshed,"upd_addr":upd_addr} );
+                } else {
+                    location.href = loc + '?family_name=dickie';
+                }
+            } catch(E) {
+                g.error.standard_unexpected_error_alert($("patronStrings").getString('staff.patron.barcode_entry.patron_display_error'),E);
+            }
+        }
+
+        function spawn_search(s) {
+                                    obj.error.sdump('D_TRACE', 'Editor would like to search for: ' + js2JSON(s));
+                                    obj.OpenILS.data.stash_retrieve();
+                                    xulG.new_patron_tab( {}, { 'doit' : 1, 'query' : js2JSON(s) } );
+                                }
+
+                                function spawn_editor(p) {
+                                    var url = urls.XUL_PATRON_EDIT;
+                                    var loc = xulG.url_prefix( urls.XUL_REMOTE_BROWSER ); // + '?url=' + window.escape( url );
+                                    xulG.new_tab(
+                                        loc,
+                                        {},
+                                        {
+                                            'url' : url,
+                                            'show_print_button' : true,
+                                            'tab_name' : $("patronStrings").getString('staff.patron.display.spawn_editor.editing_related_patron'),
+                                            'passthru_content_params' : {
+                                                'spawn_search' : spawn_search,
+                                                'spawn_editor' : spawn_editor,
+                                                'url_prefix' : function(url) { return xulG.url_prefix(url); },
+                                                'get_new_session' : function(a) { return xulG.get_new_session(a); },
+                                                'new_tab' : function(a,b,c) { return xulG.new_tab(a,b,c); },
+                                                'new_patron_tab' : function(a,b) { return xulG.new_patron_tab(a,b); },
+                                                'params' : p,
+                                                'on_save' : function(p_obj) {
+                                                    JSAN.use('patron.util');
+                                                    patron.util.work_log_patron_edit(p_obj);
+                                                }
+                                            }
+                                        }
+                                    );
+                                }
+
+        function nec_new_patron(first_given_name,family_name,nec_number,dob,address,postcode,phone) {
+                        var url = urls.XUL_PATRON_EDIT;
+                        url+="?first_given_name="+first_given_name+"&family_name="+family_name+"&nec_number="+nec_number+
+                            "&dob="+dob+"&address="+address+"&postcode="+postcode+"&phone="+phone+"&sedar_refresh=1";
+                        var loc=xulG.url_prefix(urls.XUL_BROWSER)+'?url='+window.escape(xulG.url_prefix(url));
+
+                        xulG.new_tab(
+                            loc,
+                            {},
+                            {
+                                'show_print_button' : true,
+                                'passthru_content_params' : {
+                                'params' : {
+                                            'ses' : ses(),
+                                            'first_given_name' : first_given_name,
+                                            'family_name' : family_name,
+                                            'nec_number' : nec_number,
+                                            'dob' : dob,
+                                            'address' : address,
+                                            'postcode' : postcode,
+                                            'phone' : phone,
+                                            'sedar_refresh' : 1,
+
+                                        },
+                                    'spawn_search' : spawn_search,
+                                    'spawn_editor' : spawn_editor,
+                                }
+                            }
+                        );
+                    }
+
         function spawn_checkout(barcode) {
             try {
                 var horizontal_interface = String( g.data.hash.aous['ui.circ.patron_summary.horizontal'] ) == 'true';
@@ -209,7 +409,7 @@
         }
 
 
-        function default_focus() { try { setTimeout( function() { document.getElementById('barcode_tb').focus(); }, 0); } catch(E) {} }
+        function default_focus() { try { setTimeout( function() { document.getElementById('barcode_nec').focus(); }, 0); } catch(E) {} }
     ]]>
     </script>
     
@@ -219,10 +419,15 @@
         <groupbox orient="vertical" flex="1">
             <caption label="&staff.pat.barcode_entry.retrieve_patron.label;" />
             <hbox>
+                <label value="Scan patron card" accesskey="P" control="barcode_nec"/>
+                <textbox id="barcode_nec"  context="clipboard" type="password" size="8"/>
+                <button label="Check patron details" accesskey="C" oncommand="submit_sedar_nec();"/>
+            </hbox>
+            <!--<hbox>
                 <label value="&staff.pat.barcode_entry.barcode.label;" accesskey="&staff.pat.barcode_entry.barcode.accesskey;" control="barcode_tb"/>
                 <textbox id="barcode_tb"  context="clipboard"/>
                 <button label="&staff.pat.barcode_entry.submit_btn.label;" accesskey="&staff.pat.barcode_entry.submit_btn.accesskey;" oncommand="submit();"/>
-            </hbox>
+            </hbox>-->
             <label value="&staff.pat.barcode_entry.retrieving.label;" style="color: green" id="progress" hidden="true"/>
             <vbox id="status">
             </vbox>

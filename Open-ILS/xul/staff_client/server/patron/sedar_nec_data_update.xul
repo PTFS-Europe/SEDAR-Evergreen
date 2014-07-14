@@ -1,0 +1,312 @@
+<?xml version="1.0"?>
+<!-- Application: Evergreen Staff Client -->
+<!-- Screen: SEDAR NEC card data update -->
+
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!-- STYLESHEETS -->
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="/xul/server/skin/global.css" type="text/css"?>
+
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!-- LOCALIZATION -->
+<!DOCTYPE window PUBLIC "" ""[
+    <!--#include virtual="/opac/locale/${locale}/lang.dtd"-->
+]>
+
+<!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<!-- OVERLAYS -->
+<?xul-overlay href="/xul/server/OpenILS/util_overlay.xul"?>
+
+<window id="sedar_nec_data_update"
+    onload="try { my_init(); font_helper(); persist_helper(); } catch(E) { alert(E); }"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+    <!-- BEHAVIOR -->
+        <script type="text/javascript">var myPackageDir = 'open_ils_staff_client'; var IAMXUL = true; var g = {};</script>
+        <scripts id="openils_util_scripts"/>
+
+    <script type="text/javascript" src="/xul/rel_2_2_2/server/main/JSAN.js"/>
+    <script>
+    <![CDATA[
+        function $(id) { return document.getElementById(id); }
+
+        function my_init() {
+            try {
+                netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+            if (typeof JSAN == 'undefined') { throw( $("commonStrings").getString('common.jsan.missing') ); }
+                JSAN.errorLevel = "die"; // none, warn, or die
+                JSAN.addRepository('/xul/rel_2_2_2/server/');
+                JSAN.use('util.error'); g.error = new util.error();
+                g.error.sdump('D_TRACE','my_init() for patron/sedar_nec_data_update.xul');
+
+                JSAN.use('OpenILS.data'); g.data = new OpenILS.data(); g.data.init({'via':'stash'});
+
+            var nec_family_name=$('nec_family_name');
+            var nec_id=$('nec_id');
+            var nec_first_given_name=$('nec_first_given_name');
+            var nec_nec_number=$('nec_nec_number');
+            var nec_dob=$('nec_dob');
+            var nec_address=$('nec_address');
+            var nec_postcode=$('nec_postcode');
+            var nec_phone=$('nec_phone');
+            nec_family_name.value=xulG.family_name;
+            nec_id.value=xulG.id;
+            nec_first_given_name.value=xulG.first_given_name;
+            nec_nec_number.value=xulG.nec_number;
+            nec_dob.value=xulG.dob;
+            nec_address.value=xulG.address;
+            nec_postcode.value=xulG.postcode;
+            nec_phone.value=xulG.phone;
+
+            var db_family_name=$('db_family_name');
+            var db_id=$('db_id');
+            var db_first_given_name=$('db_first_given_name');
+            var db_nec_number=$('db_nec_number');
+            var db_dob=$('db_dob');
+            var db_address=$('db_address');
+            var db_postcode=$('db_postcode');
+            var db_phone=$('db_phone');
+            db_family_name.value=xulG.db_family_name;
+            db_id.value=xulG.db_id;
+            db_first_given_name.value=xulG.db_first_given_name;
+            db_nec_number.value=xulG.db_nec_number;
+            db_dob.value=xulG.db_dob;
+            db_address.value=xulG.db_address;
+            db_postcode.value=xulG.db_postcode;
+            db_phone.value=xulG.db_phone;
+        } catch(E) {
+/*                var err_msg = $("commonStrings").getFormattedString('common.exception', ['patron/barcode_entry.xul', E]);
+                try { g.error.sdump('D_ERROR',err_msg); } catch(E) { dump(err_msg); }
+                alert(err_msg);*/
+alert('err');
+            }
+        }
+
+        function spawn_checkout() {
+            try {
+                var barcode=xulG.db_nec_number;
+                var horizontal_interface = String( g.data.hash.aous['ui.circ.patron_summary.horizontal'] ) == 'true';
+                var loc = xulG.url_prefix( horizontal_interface ? urls.XUL_PATRON_HORIZ_DISPLAY : urls.XUL_PATRON_DISPLAY );
+                if (typeof window.xulG == 'object' && typeof window.xulG.set_tab == 'function') {
+                    window.xulG.set_tab( loc, {}, { 'barcode' : barcode } );
+                } else {
+                    location.href = loc + '?barcode=' + window.escape(barcode);
+                }
+            } catch(E) {
+                g.error.standard_unexpected_error_alert($("patronStrings").getString('staff.patron.barcode_entry.patron_display_error'),E);
+            }
+        }
+
+        function update_user_from_nec() {
+                xulG.db_fleshed.a[25]=xulG.family_name;
+                xulG.db_fleshed.a[26]=xulG.first_given_name;
+                if (xulG.dob)
+                {
+                    var clean_dob=xulG.dob;
+                    var db_pos=clean_dob.indexOf('T');
+                    if (db_pos==-1)
+                    {
+                        clean_dob=clean_dob+' 00:00:00+00';
+                    }
+                    xulG.db_fleshed.a[21]=clean_dob;
+                }
+                if (xulG.phone)
+                {
+                    xulG.db_fleshed.a[20]=xulG.phone;
+                }
+                if (xulG.upd_addr=='t')
+                {
+                    if (xulG.postcode)
+                    {
+                        //if there is an existing mailing address, replace it
+                        //if not add a new address
+                        if (xulG.db_fleshed.a[34].a[4])
+                        {
+                            var old_id=xulG.db_fleshed.a[34].a[4];
+                            xulG.db_fleshed.a[34].a[12]=old_id;
+                            xulG.db_fleshed.a[34].a[14]=1;
+                        }
+                        else
+                        {
+                            xulG.db_fleshed.a[34].a[14]=1;
+                        }
+                        xulG.db_fleshed.a[34].a[0]='MAILING';
+                        xulG.db_fleshed.a[34].a[1]='N/A';
+                        xulG.db_fleshed.a[34].a[2]='UK';
+                        xulG.db_fleshed.a[34].a[3]='';
+                        xulG.db_fleshed.a[34].a[5]=xulG.postcode;
+                        xulG.db_fleshed.a[34].a[6]='UK';
+                        xulG.db_fleshed.a[34].a[7]=xulG.address;
+                        xulG.db_fleshed.a[34].a[8]='';
+                        xulG.db_fleshed.a[34].a[10]='t';
+                        xulG.db_fleshed.a[34].a[11]='t';
+                        xulG.db_fleshed.a[34].a[13]='f';
+
+                        if (xulG.db_fleshed.a[0][0].a[4])
+                        {
+                            var old_id=xulG.db_fleshed.a[0][0].a[4];
+                            xulG.db_fleshed.a[0][0].a[12]=old_id;
+                            xulG.db_fleshed.a[0][0].a[14]=1;
+                        }
+                        else
+                        {
+                            xulG.db_fleshed.a[34].a[14]=1;
+                        }
+                        xulG.db_fleshed.a[0][0].a[0]='MAILING';
+                        xulG.db_fleshed.a[0][0].a[1]='N/A';
+                        xulG.db_fleshed.a[0][0].a[2]='UK';
+                        xulG.db_fleshed.a[0][0].a[3]='';
+                        xulG.db_fleshed.a[0][0].a[5]=xulG.postcode;
+                        xulG.db_fleshed.a[0][0].a[6]='UK';
+                        xulG.db_fleshed.a[0][0].a[7]=xulG.address;
+                        xulG.db_fleshed.a[0][0].a[8]='';
+                        xulG.db_fleshed.a[0][0].a[10]='t';
+                        xulG.db_fleshed.a[0][0].a[11]='t';
+                        xulG.db_fleshed.a[0][0].a[13]='f';
+
+
+                    }
+                }
+                //else
+                //{
+                //    my $addr_blank;
+                //    xulG.db_fleshed.a[34].a=$addr_blank;
+                    //xulG.db_fleshed.a[0][0].a=$addr_blank;
+                //}
+
+                xulG.db_fleshed.ischanged='1';
+                JSAN.use('util.network'); var net = new util.network();
+                JSAN.use('util.sound'); var sound = new util.sound();
+
+                net.simple_request('FM_AU_UPDATE',[ ses(), xulG.db_fleshed ],
+                    function(req) {
+                        var robj = req.getResultObject();
+                        if (typeof robj.ilsevent != 'undefined') {
+                            sound.bad();
+                            alert('error: undefined');
+                            return;
+                        }
+                        else
+                        {
+                            sound.good();
+                            spawn_checkout();
+                        }
+                    }
+                );
+        }
+
+
+    ]]>
+    </script>
+
+    <messagecatalog id="patronStrings" src="/xul/server/locale/<!--#echo var='locale'-->/patron.properties" />
+
+    <hbox flex="1" class="my_overflow">
+        <groupbox orient="vertical" flex="1">
+            <caption label="Patron update from NEC card information" />
+    <grid flex="1">
+        <columns>
+            <column flex="1" />
+            <column flex="1" />
+        </columns>
+        <rows>
+            <row flex="12">
+                <groupbox>
+                    <caption label="Information on NEC card" />
+                    <grid flex="1">
+                        <columns>
+                            <column flex="1"/>
+                            <column flex="1"/>
+                        </columns>
+                        <rows>
+                            <row flex="1">
+                                <description value="Patron ID" />
+                                <description value="" id="nec_id" />
+                            </row>
+                            <row flex="1">
+                                <description value="First name" />
+                                <description value="" id="nec_first_given_name" />
+                            </row>
+                            <row flex="1">
+                                <description value="Family name" />
+                                <description value="" id="nec_family_name" />
+                            </row>
+                            <row flex="1">
+                                <description value="NEC card number" />
+                                <description value="" id="nec_nec_number" />
+                            </row>
+                            <row flex="1">
+                                <description value="Date of birth" />
+                                <description value="" id="nec_dob" />
+                            </row>
+                            <row flex="1">
+                                <description value="Address" />
+                                <description value="" id="nec_address" />
+                            </row>
+                            <row flex="1">
+                                <description value="Postcode" />
+                                <description value="" id="nec_postcode" />
+                            </row>
+                            <row flex="1">
+                                <description value="Phone" />
+                                <description value="" id="nec_phone"/>
+                            </row>
+                        </rows>
+                    </grid>
+                </groupbox>
+                <groupbox>
+                    <caption label="Current borrower record" />
+                    <grid flex="1">
+                        <columns>
+                            <column flex="1"/>
+                            <column flex="1"/>
+                        </columns>
+                        <rows>
+                            <row flex="1">
+                                <description value="Patron ID" />
+                                <description value="" id="db_id"/>
+                            </row>
+                            <row flex="1">
+                                <description value="First name" />
+                                <description value="" id="db_first_given_name" />
+                            </row>
+                            <row flex="1">
+                                <description value="Family name" />
+                                <description value="" id="db_family_name" />
+                            </row>
+                            <row flex="1">
+                                <description value="Barcode" />
+                                <description value="" id="db_nec_number" />
+                            </row>
+                            <row flex="1">
+                                <description value="Date of birth" />
+                                <description value="" id="db_dob" />
+                            </row>
+                            <row flex="1">
+                                <description value="Address" />
+                                <description value="" id="db_address" />
+                            </row>
+                            <row flex="1">
+                                <description value="Postcode" />
+                                <description value="" id="db_postcode" />
+                            </row>
+                            <row flex="1">
+                                <description value="Phone" />
+                                <description value="" id="db_phone" />
+                            </row>
+                        </rows>
+                    </grid>
+
+                </groupbox>
+            </row>
+            <row>
+                <!--<button label="dummy select"/>-->
+                <button label="Update borrower information" oncommand="update_user_from_nec();"/>
+                <button label="Ignore and load existing borrower record" oncommand="spawn_checkout();"/>
+            </row>
+        </rows>
+    </grid>
+        </groupbox>
+    </hbox>
+</window>
