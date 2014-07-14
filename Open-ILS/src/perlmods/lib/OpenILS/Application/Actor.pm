@@ -4797,4 +4797,297 @@ sub filter_group_entry_crud {
     }
 }
 
+# NEC card handling routines
+__PACKAGE__->register_method(
+    method   => 'barcode_current',
+    api_name => 'open-ils.actor.sedar.barcode.current',
+    signature =>
+'Check barcode exists and is current - returns user ID and t or f flag for active barcodes'
+);
+
+sub barcode_current {
+    my ( $self, $conn, $auth, $barcode ) = @_;
+    my $e = new_editor( authtoken => $auth );
+    return $e->event unless $e->checkauth;
+    my $card = $e->search_actor_card( { barcode => $barcode } );
+    if ( @{$card} ) {
+        return { usr => $card->[0]->usr, active => $card->[0]->active };
+    }
+    return 0;
+}
+
+__PACKAGE__->register_method(
+    method    => 'sedar_nec_card_check',
+    api_name  => 'open-ils.actor.sedar.nec_card.check',
+    signature => 'Check SEDAR NEC card details on scan'
+);
+
+sub sedar_nec_card_check {
+    my ( $self, $conn, $auth, $card_string ) = @_;
+    my $e = new_editor( authtoken => $auth );
+    return $e->event unless $e->checkauth;
+    my $borrower = build_borrower_from_nec_card($card_string);
+    if ( !$borrower->{nec_number} ) {
+        return { sedar_card_flag => 'badscan' };
+    }
+    my $barcode_current =
+      check_barcode_current( $auth, $borrower->{nec_number} );
+
+    my $usr    = 0;
+    my $active = 0;
+    if ( ref($barcode_current) eq 'HASH' ) {
+
+        # found barcode
+        $usr    = $barcode_current->{usr};
+        $active = $barcode_current->{active};
+        if ( $active eq 't' ) {
+
+            # check fields on card match database record
+            my $fleshed_user = get_db_borrower_details( $auth, $usr );
+            my $fgn_chg      = 'f';
+            my $fn_chg       = 'f';
+            my $dob_chg      = 'f';
+            my $addr_chg     = 'f';
+            my $pc_chg       = 'f';
+            my $phone_chg    = 'f';
+
+            my $db_first_given_name;
+            my $db_family_name;
+            my $db_dob;
+            my $db_day_phone;
+            my $db_evening_phone;
+            my $db_other_phone;
+            my $db_mailing_street1;
+            my $db_billing_street1;
+            my $db_mailing_postcode;
+            my $db_billing_postcode;
+
+            if ( $fleshed_user->first_given_name ) {
+                $db_first_given_name = $fleshed_user->first_given_name;
+            }
+            if ( $fleshed_user->family_name ) {
+                $db_family_name = $fleshed_user->family_name;
+            }
+            if ( $fleshed_user->dob ) {
+                $db_dob = $fleshed_user->dob;
+            }
+            if ( $fleshed_user->day_phone ) {
+                $db_day_phone = $fleshed_user->day_phone;
+            }
+            if ( $fleshed_user->evening_phone ) {
+                $db_evening_phone = $fleshed_user->evening_phone;
+            }
+            if ( $fleshed_user->other_phone ) {
+                $db_other_phone = $fleshed_user->other_phone;
+            }
+            if (
+                ref( $fleshed_user->billing_address ) eq
+                'Fieldmapper::actor::user_address' )
+            {
+                $db_billing_street1 = $fleshed_user->billing_address->street1;
+                $db_billing_postcode =
+                  $fleshed_user->billing_address->post_code;
+            }
+            if (
+                ref( $fleshed_user->mailing_address ) eq
+                'Fieldmapper::actor::user_address' )
+            {
+                $db_mailing_street1 = $fleshed_user->mailing_address->street1;
+                $db_mailing_postcode =
+                  $fleshed_user->mailing_address->post_code;
+            }
+
+            # check first_given_name
+            if (
+                lc( $borrower->{first_given_name} ) ne
+                lc( $fleshed_user->first_given_name ) )
+            {
+                $fgn_chg = 't';
+            }
+
+            # check family_name
+            if ( lc( $borrower->{family_name} ) ne lc($db_family_name) ) {
+                $fn_chg = 't';
+            }
+
+            # check dob
+            my $db_pos = index( $db_dob, 'T' );
+            my $clean_dob;
+            if ( $db_pos > 0 ) {
+                $clean_dob = substr( $db_dob, 0, $db_pos );
+            }
+            else {
+                $clean_dob = $db_dob;
+            }
+            if ( $borrower->{dob} ne $clean_dob ) {
+                $dob_chg = 't';
+            }
+
+            # check phone number
+            if (   $borrower->{phone} ne $db_day_phone
+                && $borrower->{phone} ne $db_evening_phone
+                && $borrower->{phone} ne $db_other_phone )
+            {
+                $phone_chg = 't';
+            }
+
+            # check address
+            if (   lc( $borrower->{address} ) ne lc($db_mailing_street1)
+                && lc( $borrower->{phone} ) ne lc($db_billing_street1) )
+            {
+                $addr_chg = 't';
+            }
+
+            # check postcode
+            if (   lc( $borrower->{postcode} ) ne lc($db_mailing_postcode)
+                && lc( $borrower->{postcode} ) ne lc($db_billing_postcode) )
+            {
+                $pc_chg = 't';
+            }
+
+            # check overall match
+            if (   $fgn_chg eq 't'
+                || $fn_chg eq 't'
+                || $dob_chg eq 't'
+                || $addr_chg eq 't'
+                || $pc_chg eq 't'
+                || $phone_chg eq 't' )
+            {
+                my $db_borrower = {
+                    first_given_name => $db_first_given_name,
+                    family_name      => $db_family_name,
+                    dob              => $clean_dob,
+                    address          => $db_mailing_street1,
+                    postcode         => $db_mailing_postcode,
+                    phone            => $db_day_phone,
+                    nec_number       => ''
+                };
+                my $upd_addr = 'f';
+                if ( $addr_chg eq 't' || $pc_chg eq 't' ) {
+                    $upd_addr = 't';
+                }
+
+#data differs on card - print dialog to confirm changes and send $borrower from card, $fleshed_user from db
+                return {
+                    sedar_card_flag => 'found_detail_change',
+                    userid          => $usr,
+                    borrower        => $borrower,
+                    db_borrower     => $db_borrower,
+                    db_fleshed      => $fleshed_user,
+                    upd_addr        => $upd_addr
+                };
+            }
+            else {
+                #card data matches - load borrower as normal
+                return {
+                    sedar_card_flag => 'found',
+                    userid          => $usr,
+                    barcode         => $borrower->{nec_number}
+                };
+            }
+        }
+        elsif ( $active eq 'f' ) {
+
+# old barcode found - load borrower as normal and default system behaviour flags an old card in the system
+            return {
+                sedar_card_flag => 'found_old_card',
+                userid          => $usr,
+                barcode         => $borrower->{nec_number}
+            };
+        }
+    }
+    else {
+        # barcode not found - search for matches
+        my $borsearch             = build_borrower_search_hash($borrower);
+        my $psearch               = patron_search( $auth, $borsearch );
+        my $patron_search_matches = scalar @{$psearch};
+        if ( $patron_search_matches == 0 ) {
+
+            # no matches - add new user from $borrower
+            return {
+                sedar_card_flag => 'not_found_add',
+                borrower        => $borrower
+            };
+        }
+        elsif ( $patron_search_matches > 0 ) {
+
+            # matches found - return search hash
+            return {
+                sedar_card_flag => 'not_found_matches',
+                search_hash     => $borsearch,
+                nec_number      => $borrower->{nec_number}
+            };
+        }
+    }
+
+}
+
+sub build_borrower_from_nec_card {
+    my $card_string = shift;
+    my @card_array = split( /\^/, $card_string );
+    if ( $card_array[3] ) {
+        $card_array[3] =
+            substr( $card_array[3], 4, 4 ) . '-'
+          . substr( $card_array[3], 2, 2 ) . '-'
+          . substr( $card_array[3], 0, 2 );
+    }
+
+    my $borrower = {
+        first_given_name => $card_array[1],
+        family_name      => $card_array[2],
+        dob              => $card_array[3],
+        address          => $card_array[5],
+        postcode         => $card_array[6],
+        phone            => $card_array[7],
+        nec_number       => $card_array[9]
+    };
+    return $borrower;
+}
+
+sub check_barcode_current {
+    my ( $auth, $barcode ) = @_;
+
+    my $response =
+      OpenSRF::AppSession->create('open-ils.actor')
+      ->request( 'open-ils.actor.sedar.barcode.current', $auth, $barcode )
+      ->gather;
+    return $response;
+}
+
+sub get_db_borrower_details {
+    my ( $auth, $userid ) = @_;
+
+    my $response =
+      OpenSRF::AppSession->create('open-ils.actor')
+      ->request( 'open-ils.actor.user.fleshed.retrieve', $auth, $userid )
+      ->gather;
+    die "No retrieve user by ID response\n" unless $response;
+    return $response;
+}
+
+sub build_borrower_search_hash {
+    my $borrower  = shift;
+    my $borsearch = {
+        first_given_name =>
+          { value => $borrower->{first_given_name}, group => 0 },
+        family_name => { value => $borrower->{family_name}, group => 0 },
+
+        #dob              => {value=>$borrower->{dob},group=>0}
+    };
+    return $borsearch;
+}
+
+sub patron_search {
+    my $auth   = shift;
+    my $search = shift;
+
+    my $response =
+      OpenSRF::AppSession->create('open-ils.actor')
+      ->request( 'open-ils.actor.patron.search.advanced', $auth, $search )
+      ->gather;
+    die "No search response returned\n" unless $response;
+    return $response;
+}
+
+# End NEC handling
 1;
