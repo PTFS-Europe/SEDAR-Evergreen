@@ -92,6 +92,11 @@
                 accesskey="&staff.patron_search_form.card.accesskey;"/>
             <textbox id="card" group="0" context="clipboard"/>
         </row>
+        <row id="psr6d">
+            <label id="psl6d" control="dob"
+                value="DOB (YYYY-MM-DD)" />
+            <textbox id="dob" group="0" context="clipboard"/>
+        </row>
         <row id="psr6a">
             <label id="psl6a" value=" "/>
         </row>

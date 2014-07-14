@@ -123,6 +123,19 @@ patron.search_form.prototype = {
                             };
                         }
                     ],
+                    'dob' : [
+                        ['render'],
+                        function(e) {
+                            return function() {
+                                if (params.query&&params.query.dob) {
+                                    e.setAttribute('value',params.query.dob);
+                                    e.value = params.query.dob;
+                                } else {
+                                    e.value = '';
+                                }
+                            };
+                        }
+                    ],
                     'email' : [
                         ['render'],
                         function(e) {
