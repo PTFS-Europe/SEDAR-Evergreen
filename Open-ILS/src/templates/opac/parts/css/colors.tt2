@@ -12,10 +12,10 @@
         text_greatnews = "green", # green
         text_invert = "#fff", # white
         text_match = "#c00", # deep red
-        primary = "#00593d", # dark green
-        primary_fade = "#007a54", # medium green
-        primary_offset = "#417860", # light_green
-        control = "#69A088", # lighter green
+        primary = "#5C85AD", # dark blue
+        primary_fade = "#99B2CC", # medium blue
+        primary_offset = "#C2D1E0", # light_blue
+        control = "#336699", # lighter green
         accent_light = "#ccc", #  grey (light)
         accent_lighter = "#ddd", #  grey (lighter)
         accent_lighter2 = "#d8d8d8", #  grey (lighter again)
