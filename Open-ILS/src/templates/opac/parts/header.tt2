@@ -3,7 +3,7 @@
     USE CGI = CGI_utf8;
     USE POSIX;
     USE HTML;
-    SET DATE_FORMAT = l('%m/%d/%Y');
+    SET DATE_FORMAT = l('%d/%m/%Y');
     PROCESS "opac/parts/config.tt2";
 
     # Don't wrap in l() here; do that where this format string is actually used.
