@@ -69,7 +69,7 @@ disable_email_change = 'false';
 # hides the user preference for phone notifications as well as the phone
 # notification portion of the hold dialogue
 ##############################################################################
-allow_phone_notifications = 'true';
+allow_phone_notifications = 'false';
 
 ##############################################################################
 # Misc. UI Settings
