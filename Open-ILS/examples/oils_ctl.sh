@@ -1,13 +1,14 @@
 #!/bin/bash
 
 OPT_ACTION=""
-OPT_SIP_CONFIG="SYSCONFDIR/oils_sip.xml"
+OPT_SIP_CONFIG=""
 OPT_PID_DIR="LOCALSTATEDIR/run"
 OPT_SIP_ERR_LOG="LOCALSTATEDIR/log/oils_sip.log";
 OPT_Z3950_CONFIG="SYSCONFDIR/oils_z3950.xml"
 OPT_YAZ_CONFIG="SYSCONFDIR/oils_yaz.xml"
 Z3950_LOG="LOCALSTATEDIR/log/oils_z3950.log"
 SIP_DIR="/opt/SIPServer";
+OPT_SIP_PORT=""
 
 # ---------------------------------------------------------------------------
 # Make sure we're running as the correct user
@@ -17,7 +18,7 @@ SIP_DIR="/opt/SIPServer";
 
 function usage {
 	echo "";
-	echo "usage: $0 -d <pid_dir> -s <sip_config> -z <z3950_config> -y <yaz_config> -a <action> -l <sip_err_log>";
+	echo "usage: $0 -d <pid_dir> -s <sip_config> -z <z3950_config> -y <yaz_config> -a <action> -l <sip_err_log> -p <sip_port>";
 	echo "";
 	echo "Actions include:"
 	echo -e "\tstart_sip"
@@ -36,12 +37,13 @@ function usage {
 # ---------------------------------------------------------------------------
 # Load the command line options and set the global vars
 # ---------------------------------------------------------------------------
-while getopts "a:d:s:l:y:z:" flag; do
+while getopts "a:d:s:l:p:y:z:" flag; do
 	case $flag in	
 		"a")		OPT_ACTION="$OPTARG";;
 		"s")		OPT_SIP_CONFIG="$OPTARG";;
 		"d")		OPT_PID_DIR="$OPTARG";;
 		"l")		OPT_SIP_ERR_LOG="$OPTARG";;
+		"p")		OPT_SIP_PORT="$OPTARG";;
 		"z")		OPT_Z3950_CONFIG="$OPTARG";;
 		"y")		OPT_YAZ_CONFIG="$OPTARG";;
 		"h"|*)	usage;;
@@ -52,7 +54,7 @@ done
 [ -z "$OPT_PID_DIR" ] && OPT_PID_DIR=/tmp;
 [ -z "$OPT_ACTION" ] && usage;
 
-PID_SIP="$OPT_PID_DIR/oils_sip.pid";
+PID_SIP="$OPT_PID_DIR/oils_sip_${OPT_SIP_PORT}.pid";
 PID_Z3950="$OPT_PID_DIR/oils_z3950.pid";
 
 # ---------------------------------------------------------------------------
