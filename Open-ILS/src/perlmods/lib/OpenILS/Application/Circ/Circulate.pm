@@ -3142,6 +3142,36 @@ sub process_received_transit {
 
     $logger->info("circulator: Recovering original copy status in transit: ".$transit->copy_status);
     $copy->status( $transit->copy_status );
+    # Stock Rotation processing
+    my $owning_rota_query;
+    $owning_rota_query = {
+        select  =>      {sritem => ['owning_rota']},
+        from    =>      'sritem',
+        where   =>      {copy_id => $copy->id},
+    };
+    my $owning_rota=$self->editor->json_query($owning_rota_query);
+    #use Data::Dumper;
+    #$logger->info(Dumper($owning_rota));
+    if ( $owning_rota->[0] ) {
+        my $rota_id=$owning_rota->[0]->{'owning_rota'};
+
+        my $workstation_ou=$self->editor->requestor->ws_ou;
+        my $next_stage_query = {
+            select  =>      {srstage => ['id']},
+            from    =>      'srstage',
+            where   =>      {rota => $rota_id, lib => $workstation_ou},
+        };
+        my $next_stage=$self->editor->json_query($next_stage_query);
+        my $next_stage_id=$next_stage->[0]->{'id'};
+        my $item = $self->editor->search_sr_item({copy_id=>$copy->id});
+        $item->[0]->current_stage($next_stage_id);
+        $item->[0]->transfer_date('now');
+        my $u = new_editor(xact=>1);
+        $u->update_sr_item($item->[0]);
+        $logger->info('STOCK ROTATION: ITEM '.$copy->id. ' ON ROTA '.$rota_id.' MOVED TO STAGE '.$next_stage_id);
+        $u->commit;
+    }
+    # End Stock Rotation processing
     $self->update_copy();
     return if $self->bail_out;
 

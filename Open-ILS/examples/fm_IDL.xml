@@ -11451,6 +11451,88 @@ SELECT  usr,
             </actions>
 	</permacrud>
         </class>
+	<!-- Stock Rotation Classes -->
+	<class id="srrota" controller="open-ils.cstore open-ils.reporter-store"
+		oils_obj:fieldmapper="sr::rota"
+		oils_persist:tablename="sr.rota"
+		reporter:label="Stock Rotation: Rota">
+		<fields oils_persist:primary="id" oils_persist:sequence="sr.rota_id_seq">
+			<field reporter:label="Rota Id" name="id" reporter:datatype="id" reporter:selector="id" />
+			<field reporter:label="Rota Name" name="name" reporter:datatype="text" reporter:selector="name" />
+			<field reporter:label="Rota Cyclical Flag" name="cyclical" reporter:datatype="bool" reporter:selector="cyclical" />
+			<field reporter:label="Rota Deleted Flag" name="deleted" reporter:datatype="bool" reporter:selector="deleted" />
+		</fields>
+		<links>
+		</links>
+		<permacrud xmlns="http://open-ils.org/spec/opensrf/IDL/permacrud/v1">
+			<actions>
+				<create permission="CREATE_COPY_BTYPE" global_required="true"/>
+				<retrieve/>
+				<update permission="UPDATE_COPY_BTYPE" global_required="true"/>
+				<delete permission="DELETE_COPY_BTYPE" global_required="true"/>
+			</actions>
+		</permacrud>
+	</class>
+
+	<class id="sritem" controller="open-ils.cstore open-ils.reporter-store"
+		oils_obj:fieldmapper="sr::item"
+		oils_persist:tablename="sr.item"
+		reporter:label="Stock Rotation: Item">
+		<fields oils_persist:primary="copy_id">
+			<field reporter:label="SR Copy_id" name="copy_id"
+				reporter:datatype="link" reporter:selector="copy_id" />
+			<field reporter:label="Item Rota" name="owning_rota"
+				reporter:datatype="link" reporter:selector="owning_rota" />
+			<field reporter:label="Item Stage" name="current_stage"
+				reporter:datatype="link" reporter:selector="current_stage" />
+			<field reporter:label="Item Transfer Date" name="transfer_date"
+				reporter:datatype="timestamp" reporter:selector="transfer_date" />
+		</fields>
+		<links>
+			<link field="copy_id" reltype="has_a" key="id" class="acp"/>
+			<link field="owning_rota" reltype="has_a" key="id" class="srrota"/>
+			<link field="current_stage" reltype="has_a" key="id" class="srstage"/>
+		</links>
+		<permacrud xmlns="http://open-ils.org/spec/opensrf/IDL/permacrud/v1">
+			<actions>
+				<create permission="CREATE_COPY_BTYPE" global_required="true"/>
+				<retrieve/>
+				<update permission="UPDATE_COPY_BTYPE" global_required="true"/>
+				<delete permission="DELETE_COPY_BTYPE" global_required="true"/>
+			</actions>
+		</permacrud>
+	</class>
+
+	<class id="srstage" controller="open-ils.cstore open-ils.reporter-store"
+		oils_obj:fieldmapper="sr::stage"
+		oils_persist:tablename="sr.stage"
+		reporter:label="Stock Rotation: Rota Stage">
+		<fields oils_persist:primary="id" oils_persist:sequence="sr.stage_id_seq">
+			<field reporter:label="Rota Stage Id" name="id"
+				reporter:datatype="id" reporter:selector="id" />
+			<field reporter:label="Rota" name="rota"
+				reporter:datatype="link" reporter:selector="rota" />
+			<field reporter:label="Rota Stage Sequence" name="seq"
+				reporter:datatype="int" reporter:selector="sequence" />
+			<field reporter:label="Rota Stage Library" name="lib"
+				reporter:datatype="org_unit" reporter:selector="lib" />
+			<field reporter:label="Rota Stage Duration" name="duration"
+				reporter:datatype="int" reporter:selector="duration" />
+		</fields>
+		<links>
+			<link field="rota" reltype="has_a" key="id" class="srrota"/>
+			<link field="lib" reltype="has_a" key="id" map="" class="aou"/>
+		</links>
+		<permacrud xmlns="http://open-ils.org/spec/opensrf/IDL/permacrud/v1">
+			<actions>
+				<create permission="CREATE_COPY_BTYPE" global_required="true"/>
+				<retrieve/>
+				<update permission="UPDATE_COPY_BTYPE" global_required="true"/>
+				<delete permission="DELETE_COPY_BTYPE" global_required="true"/>
+			</actions>
+		</permacrud>
+	</class>
+
 
 	<!-- ********************************************************************************************************************* -->
 
